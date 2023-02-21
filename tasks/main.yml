@@ -1,0 +1,57 @@
+# Copyright (c) 2023, Bennett Samowich <bennett@foolean.org>
+# All rights reserved
+# SPDX short identifier: BSD-3-Clause
+---
+
+# We put the entire role in a block so we can create
+# a role specific tag, which saves the caller from
+# having to do so in their playbook.
+- name: Role foolean/pam
+  block:
+
+  - name: CIS | Ensure PAM and cracklib are installed
+    become: true
+    ansible.builtin.package:
+      name:
+        - 'pam'
+        - 'cracklib'
+      state: present
+
+  - name: CIS | Ensure password creation requirements are configured
+    become: true
+    ansible.builtin.template:
+      src: 'etc/security/pwquality.conf.j2'
+      dest: '/etc/security/pwquality.conf'
+      owner: 'root'
+      group: 'root'
+      mode: '0644'
+
+  - name: CIS | Ensure lockout for failed password attempts is configured
+    become: true
+    ansible.builtin.template:
+      src: 'etc/security/faillock.conf.j2'
+      dest: '/etc/security/faillock.conf'
+      owner: 'root'
+      group: 'root'
+      mode: '0644'
+
+  - name: CIS | Ensure password hashing algorithm is SHA-512 (libuser.conf)
+    become: true
+    community.general.ini_file:
+      path: '/etc/libuser.conf'
+      section: 'defaults'
+      option: 'crypt_style'
+      value: 'sha512'
+
+  - name: Install pam_mkuserdir
+    become: true
+    ansible.builtin.copy:
+      src: 'files/usr/local/sbin/pam_mkuserdir'
+      dest: '/usr/local/sbin/pam_mkuserdir'
+      owner: 'root'
+      group: 'root'
+      mode: '0755'
+
+  # Tags to be applied to this role (block)
+  tags:
+    - 'role_foolean_pam'

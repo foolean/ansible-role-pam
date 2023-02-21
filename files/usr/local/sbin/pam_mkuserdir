@@ -1,0 +1,136 @@
+#!/bin/bash
+#
+# FILENAME: pam_mkuserdir
+# AUTHOR:   Bennett Samowich <bennett@foolean.org>
+# DATE:     2018-05-29
+#
+# DESCRIPTION:
+#   Create a user-specific directory in a specified location when the user
+#   logs in.  This is similar to pam_mkhomedir but is intended for cases
+#   where the directory being created is not $HOME but is intended to be
+#   user-specific.
+#
+###############################################################################
+
+# Our name and version
+PROGRAM=$(basename $0)
+VERSION="1.0.0"
+
+# Initialize our variables
+DIR=""
+OWNER="${PAM_USER}"
+GROUP=""
+MODE="0700"
+DEBUG=0
+
+# Macro to assist with logging
+LOGGER="logger -i -t ${PROGRAM}"
+
+# debug:
+#   Simple routine to log and print debugging output
+debug() {
+    if [ ${DEBUG} -eq 1 ]; then
+        echo "${PROGRAM}: debug: $*" 1>&2
+        ${LOGGER} "debug: $*"
+    fi
+}
+
+# fatal:
+#   Simple routine to log and print error messages then exit
+fatal() {
+    echo "${PROGRAM}: fatal: $*" 1>&2
+    ${LOGGER} "fatal: $*"
+    exit 0
+}
+
+# notice:
+#   Simple routine to handle general output
+notice() {
+    echo "${PROGRAM}: $*"
+    ${LOGGER} "notice: $*"
+}
+
+# Parse the command-line options
+while getopts "Dd:g:hm:o:" OPTION
+do
+    case $OPTION in
+        D)
+            DEBUG=1
+            ;;
+        d)
+            DIR="${OPTARG}"
+            shift
+            ;;
+        g)
+            GROUP="${OPTARG}"
+            ;;
+        h)
+            usage
+            exit 1;     # should never get here
+            ;;
+        m)
+            MODE="${OPTARG}"
+            shift
+            ;;
+        o)
+            OWNER="${OPTARG}"
+            shift
+            ;;
+        ?)
+            echo "Unknown argument, exiting"
+            exit 1
+            ;;
+    esac
+done
+
+debug "PAM_USER='${PAM_USER}'"
+debug "PAM_RHOST='${PAM_RHOST}'"
+debug "PAM_RUSER='${PAM_RUSER}'"
+debug "PAM_SERVICE='${PAM_SERVICE}'"
+debug "PAM_TTY='${PAM_TTY}'"
+debug "PAM_TYPE='${PAM_TYPE}'"
+debug "DIR='${DIR}'"
+debug "OWNER='${OWNER}'"
+debug "GROUP='${GROUP}'"
+debug "MODE='${MODE}'"
+
+# We must be running from PAM
+if [ "${PAM_USER}" == "" ]
+then
+    fatal "PAM_USER variable undeclared, aborting"
+fi
+
+# We must be in open_session
+if [ "${PAM_TYPE}" != "open_session" ]
+then
+    debug "skipping module type '${PAM_TYPE}'"
+    exit 0; # We only want to run during open_session
+fi
+
+# We must have a parent directory to use
+if [ "${DIR}" == "" ]
+then
+    fatal "no parent directory specified, aborting"
+fi
+
+# We must have an owner
+if [ "${OWNER}" == "" ]
+then
+    fatal "no owner specified, aborting"
+fi
+
+# The root directory must exist
+if [ ! -d "${DIR}" ]
+then
+    fatal "parent directory '${DIR}' not found, aborting"
+fi
+
+# Create the directory if it doesn't exist
+if [ ! -d "${DIR}/${PAM_USER}" ]
+then
+    notice "Creating '${DIR}/${PAM_USER}' mode ${MODE}"
+    mkdir --mode="${MODE}" "${DIR}/${PAM_USER}"
+
+    notice "Setting ownership of '${DIR}/${PAM_USER}' to '${OWNER}.${GROUP}'"
+    chown "${OWNER}.${GROUP}" "${DIR}/${PAM_USER}"
+fi

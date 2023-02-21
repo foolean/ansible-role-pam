@@ -1,0 +1,60 @@
+# Copyright (c) 2023, Bennett Samowich <bennett@foolean.org>
+# All rights reserved
+# SPDX short identifier: BSD-3-Clause
+---
+
+# pam_cracklib_dcredit
+#   Maximum credit for having digits in the new password.
+#   (default: -1) Ref: CIS
+pam_cracklib_dcredit: -1
+
+# pam_cracklib_lcredit
+#   Maximum credit for having lower case letters in the new password.
+#   (default: -1) Ref: CIS
+pam_cracklib_lcredit: -1
+
+# pam_cracklib_minlen
+#   Minimum acceptable size for the new password
+#   (default: 14) Ref: CIS
+pam_cracklib_minlen: 14
+
+# pam_cracklib_ocredit
+#   Maximum credit for having other characters in the new password.
+#   (default: -1) Ref: CIS
+pam_cracklib_ocredit: -1
+
+# pam_cracklib_retry
+#   Number of times to prompt the user before returning an error.
+#   (default: 3) Ref: CIS
+pam_cracklib_retry: 3
+
+# pam_cracklib_ucredit
+#   Maximum credit for having upper case letters in the new password.
+#   (default: -1) Ref: CIS
+pam_cracklib_ucredit: -1
+
+# pam_mkuserdirs
+#   Array of parent directories to create a per-user subdirectory in
+#   (default: nullined)
+pam_mkuserdirs: null
+
+# pam_password_fail_count
+#   Number of failed attempts before the account is locked
+# (default: 5) Ref: CIS
+pam_password_fail_count: 5
+
+# pam_password_fail_lock_time
+#   Number of seconds to lock an account for too many password failures.
+#   (default: 900) Ref: CIS
+pam_password_fail_lock_time: 900
+
+# pam_password_history
+#   Number of unique passwords that must be associated with an account
+#   before an old password can be reused.
+#   (default: 10) Ref: CIS
+pam_password_history: 10
+
+# pam_use_pam_ldap
+#   Enable the use of the pam_ldap module in pam.d/common-*
+#   (default: false)
+pam_use_pam_ldap: false
