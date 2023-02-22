@@ -52,6 +52,45 @@
       group: 'root'
       mode: '0755'
 
+  - name: CIS | Ensure custom authselect profile is used (create)
+    become: true
+    ansible.builtin.command:
+      cmd: 'authselect create-profile custom-profile -b sssd'
+      creates: '/etc/authselect/custom/custom-profile'
+    register: authselect_create_custom_profile
+
+  - name: CIS | Ensure custom authselect profile is used (check)
+    become: true
+    ansible.builtin.shell:
+      cmd: 'authselect current | grep -c "custom-profile\|with-sudo\|with-faillock\|without-nullok"'
+    register: authselect_check_custom_profile
+    changed_when: authselect_check_custom_profile.stdout != '4'
+    failed_when: authselect_check_custom_profile.stdout == '-1'
+
+  - name: CIS | Ensure custom authselect profile is used (select)
+    become: true
+    ansible.builtin.command:
+      cmd: 'authselect select custom/custom-profile with-sudo with-faillock without-nullok --force'
+    when:
+      - authselect_create_custom_profile is succeeded
+      - authselect_check_custom_profile.stdout != '4'
+
+  - name: CIS | Create su group
+    become: true
+    ansible.builtin.group:
+      name: "{{ pam_su_group }}"
+      system: true
+      state: present
+
+  - name: CIS | Ensure access to the su command is restricted
+    become: true
+    ansible.builtin.template:
+      src: 'etc/pam.d/su.j2'
+      dest: '/etc/pam.d/su'
+      owner: 'root'
+      group: 'root'
+      mode: '0644'
+
   # Tags to be applied to this role (block)
   tags:
     - 'role_foolean_pam'
