@@ -42,6 +42,9 @@
       section: 'defaults'
       option: 'crypt_style'
       value: 'sha512'
+      owner: 'root'
+      group: 'root'
+      mode: '0644'
 
   - name: Install pam_mkuserdir
     become: true
