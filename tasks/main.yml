@@ -75,6 +75,18 @@
       - authselect_create_custom_profile is succeeded
       - authselect_check_custom_profile.stdout != '4'
 
+  - name: CIS
+    become: true
+    ansible.builtin.template:
+      src: "etc/authselect/custom/custom-profile/{{ item }}.j2"
+      dest: "/etc/authselect/custom/custom-profile/{{ item }}"
+      owner: 'root'
+      group: 'root'
+      mode: '0644'
+    notify: Authselect apply changes
+    with_items:
+      - 'system-auth'
+
   - name: CIS | Create su group
     become: true
     ansible.builtin.group:
@@ -90,6 +102,11 @@
       owner: 'root'
       group: 'root'
       mode: '0644'
+
+  # Flush any handlers that we might have called
+  - name: Flush handlers
+    ansible.builtin.meta:
+      flush_handlers
 
   # Tags to be applied to this role (block)
   tags:
