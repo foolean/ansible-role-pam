@@ -54,6 +54,12 @@ pam_password_fail_lock_time: 900
 #   (default: 10) Ref: CIS
 pam_password_history: 10
 
+# pam_sha_crypt_rounds
+#   Number of rounds to use for sha256 and sha512 passwords
+#   This should be greater than 5000
+#   (default: 65535)
+pam_sha_crypt_rounds: 65535
+
 # pam_su_group
 #   Name of the group that will be used to permit
 #   access to the su command

@@ -29,8 +29,8 @@ account     [default=bad success=ok user_unknown=ignore] pam_sss.so
 account     required                                     pam_permit.so
 
 password    requisite                                    pam_pwquality.so local_users_only enforce_for_root retry=3
-password    sufficient                                   pam_pwhistory.so remember={{ pam_password_history }} use_authtok
-password    sufficient                                   pam_unix.so sha512 shadow {if not "without-nullok":nullok} use_authtok remember={{ pam_password_history }}
+password    requisite                                    pam_pwhistory.so remember={{ pam_password_history }} enforce_for_root use_authtok
+password    sufficient                                   pam_unix.so sha512 shadow {if not "without-nullok":nullok} use_authtok rounds={{ pam_sha_crypt_rounds }}
 password    sufficient                                   pam_sss.so use_authtok
 password    required                                     pam_deny.so
 
