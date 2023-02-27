@@ -17,7 +17,7 @@
           - 'cracklib'
         state: present
 
-    - name: CIS | Ensure password creation requirements are configured
+    - name: CIS | Ensure password creation requirements are configured (pwquality)
       become: true
       ansible.builtin.template:
         src: 'etc/security/pwquality.conf.j2'
@@ -78,7 +78,7 @@
         - authselect_create_custom_profile is succeeded
         - authselect_check_custom_profile.stdout != '4'
 
-    - name: CIS
+    - name: CIS | Ensure password creation requirements are configured (pam.d)
       become: true
       ansible.builtin.template:
         src: "etc/authselect/custom/custom-profile/{{ item }}.j2"
@@ -89,6 +89,7 @@
       notify: Authselect apply changes
       with_items:
         - 'system-auth'
+        - 'password-auth'
 
     - name: CIS | Create su group
       become: true
