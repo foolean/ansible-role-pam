@@ -9,12 +9,17 @@
 - name: Role foolean/pam
   block:
 
+    - name: Set OS variables
+      ansible.builtin.include_vars:
+        file: "{{ item }}"
+      with_first_found:
+        - "{{ ansible_os_family|lower }}.yml"
+        - "default.yml"
+
     - name: CIS | Ensure PAM and cracklib are installed
       become: true
       ansible.builtin.package:
-        name:
-          - 'pam'
-          - 'cracklib'
+        name: "{{ pam_packages }}"
         state: present
 
     - name: CIS | Ensure password creation requirements are configured (pwquality)
@@ -35,62 +40,6 @@
         group: 'root'
         mode: '0644'
 
-    - name: CIS | Ensure password hashing algorithm is SHA-512 (libuser.conf)
-      become: true
-      community.general.ini_file:
-        path: '/etc/libuser.conf'
-        section: 'defaults'
-        option: 'crypt_style'
-        value: 'sha512'
-        owner: 'root'
-        group: 'root'
-        mode: '0644'
-
-    - name: Install pam_mkuserdir
-      become: true
-      ansible.builtin.copy:
-        src: 'files/usr/local/sbin/pam_mkuserdir'
-        dest: '/usr/local/sbin/pam_mkuserdir'
-        owner: 'root'
-        group: 'root'
-        mode: '0755'
-
-    - name: CIS | Ensure custom authselect profile is used (create)
-      become: true
-      ansible.builtin.command:
-        cmd: 'authselect create-profile custom-profile -b sssd'
-        creates: '/etc/authselect/custom/custom-profile'
-      register: authselect_create_custom_profile
-
-    - name: CIS | Ensure custom authselect profile is used (check)
-      become: true
-      ansible.builtin.shell:
-        cmd: 'authselect current | grep -c "custom-profile\|with-sudo\|with-faillock\|without-nullok"'
-      register: authselect_check_custom_profile
-      changed_when: authselect_check_custom_profile.stdout != '4'
-      failed_when: authselect_check_custom_profile.stdout == '-1'
-
-    - name: CIS | Ensure custom authselect profile is used (select)
-      become: true
-      ansible.builtin.command:
-        cmd: 'authselect select custom/custom-profile with-sudo with-faillock without-nullok --force'
-      when:
-        - authselect_create_custom_profile is succeeded
-        - authselect_check_custom_profile.stdout != '4'
-
-    - name: CIS | Ensure password creation requirements are configured (pam.d)
-      become: true
-      ansible.builtin.template:
-        src: "etc/authselect/custom/custom-profile/{{ item }}.j2"
-        dest: "/etc/authselect/custom/custom-profile/{{ item }}"
-        owner: 'root'
-        group: 'root'
-        mode: '0644'
-      notify: Authselect apply changes
-      with_items:
-        - 'system-auth'
-        - 'password-auth'
-
     - name: CIS | Create su group
       become: true
       ansible.builtin.group:
@@ -101,11 +50,29 @@
     - name: CIS | Ensure access to the su command is restricted
       become: true
       ansible.builtin.template:
-        src: 'etc/pam.d/su.j2'
+        src: "etc/pam.d/su-{{ ansible_os_family|lower }}.j2"
         dest: '/etc/pam.d/su'
         owner: 'root'
         group: 'root'
         mode: '0644'
+
+    # ----------------------------------------------------------------------
+    # Import OS specific configurations
+    # ----------------------------------------------------------------------
+
+    - name: Configure PAM
+      ansible.builtin.import_tasks:
+        file: "redhat.yml"
+      when:
+        - ansible_os_family|lower == "redhat"
+
+    - name: Configure PAM
+      ansible.builtin.import_tasks:
+        file: "debian.yml"
+      when:
+        - ansible_os_family|lower == "debian"
+
+    # ----------------------------------------------------------------------
 
     # Flush any handlers that we might have called
     - name: Flush handlers

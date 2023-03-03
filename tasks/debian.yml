@@ -1,0 +1,17 @@
+# Copyright (c) 2023, Bennett Samowich <bennett@foolean.org>
+# All rights reserved
+# SPDX short identifier: BSD-3-Clause
+---
+
+- name: CIS | Ensure password creation requirements are configured (pam.d)
+  become: true
+  ansible.builtin.template:
+    src: "etc/pam.d/{{ item }}.j2"
+    dest: "/etc/pam.d/{{ item }}"
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  with_items:
+    - 'common-account'
+    - 'common-auth'
+    - 'common-password'

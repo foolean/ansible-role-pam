@@ -41,7 +41,7 @@ pam_mkuserdirs: null
 # pam_password_fail_count
 #   Number of failed attempts before the account is locked
 # (default: 5) Ref: CIS
-pam_password_fail_count: 5
+pam_password_fail_count: "{{ pam_default_password_fail_count }}"
 
 # pam_password_fail_lock_time
 #   Number of seconds to lock an account for too many password failures.

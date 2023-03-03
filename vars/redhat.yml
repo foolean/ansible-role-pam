@@ -1,0 +1,14 @@
+# Copyright (c) 2023, Bennett Samowich <bennett@foolean.org>
+# All rights reserved
+# SPDX short identifier: BSD-3-Clause
+---
+
+# pam_packages
+#   List of packages to be installed/removed
+pam_packages:
+  - 'pam'
+  - 'cracklib'
+
+# pam_default_password_fail_count
+#   Number of failed attempts before the account is locked
+pam_default_password_fail_count: 5
