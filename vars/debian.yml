@@ -5,13 +5,13 @@
 
 # pam_packages
 #   List of packages to be installed/removed
+#  - 'libpam-cracklib'
 pam_packages:
   - 'libpam-modules'
   - 'libpam-modules-bin'
   - 'libpam-runtime'
   - 'libpam-systemd'
   - 'libpam0g'
-  - 'libpam-cracklib'
   - 'libpam-pwquality'
 
 # pam_default_password_fail_count
